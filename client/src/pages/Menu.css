@@ -1,0 +1,111 @@
+.page-header {
+  padding-top: calc(var(--navbar-height) + var(--space-3xl));
+  padding-bottom: var(--space-2xl);
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 70%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.page-header .section__subtitle {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.menu-section {
+  padding-top: var(--space-2xl);
+}
+
+.menu-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.menu-search-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+}
+
+.menu-search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.menu-search-input {
+  padding-left: 2.75rem;
+  padding-right: 2.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+}
+
+.menu-search-clear {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: 4px;
+  border-radius: 50%;
+  line-height: 1;
+  transition: color var(--transition-fast);
+}
+
+.menu-search-clear:hover {
+  color: var(--color-accent);
+}
+
+.menu-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menu-meta__count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.menu-meta__count strong {
+  color: var(--color-accent);
+}
+
+/* Grid */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+}
+
+.menu-empty {
+  padding: var(--space-4xl) var(--space-xl);
+}
+
+.menu-empty__icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .menu-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}

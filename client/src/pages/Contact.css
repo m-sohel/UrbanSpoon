@@ -1,0 +1,26 @@
+.contact-section {
+  padding-top: var(--space-2xl);
+}
+
+.contact-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: flex-start;
+}
+
+.contact-main-grid__form {
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--space-lg));
+}
+
+@media (max-width: 900px) {
+  .contact-main-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+
+  .contact-main-grid__form {
+    position: static;
+  }
+}

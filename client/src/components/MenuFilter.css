@@ -1,0 +1,37 @@
+.menu-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-2xl);
+}
+
+.menu-filter__btn {
+  padding: 0.6rem 1.5rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+  letter-spacing: 0.02em;
+}
+
+.menu-filter__btn:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-light);
+  background: var(--color-bg-card-hover);
+}
+
+.menu-filter__btn--active {
+  color: var(--color-text-inverse);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
+}
+
+.menu-filter__btn--active:hover {
+  color: var(--color-text-inverse);
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent));
+}

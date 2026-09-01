@@ -1,0 +1,60 @@
+.inquiry-form-wrapper {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.inquiry-form__header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.inquiry-form__header .section__subtitle {
+  margin: var(--space-sm) auto 0;
+}
+
+.inquiry-form {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+}
+
+.inquiry-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.inquiry-form__submit {
+  width: 100%;
+  margin-top: var(--space-md);
+}
+
+.inquiry-form__server-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.75rem 1rem;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-md);
+}
+
+/* Date input styling for dark theme */
+.inquiry-form input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .inquiry-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .inquiry-form {
+    padding: var(--space-lg);
+  }
+}
