@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import API from '../api/api';
 import ConfirmationSummary from './ConfirmationSummary';
 import './InquiryForm.css';
 
@@ -48,7 +48,7 @@ const InquiryForm = () => {
 
     setLoading(true);
     try {
-      await axios.post('/api/inquiries', {
+      await API.post('/api/inquiries', {
         ...formData,
         guests: Number(formData.guests),
       });

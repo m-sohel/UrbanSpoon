@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api/api';
 import './Admin.css';
 
 const Admin = () => {
@@ -12,7 +12,7 @@ const Admin = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/inquiries');
+      const res = await API.get('/api/inquiries');
       setInquiries(res.data || []);
     } catch (err) {
       console.error('Failed to fetch inquiries:', err);
