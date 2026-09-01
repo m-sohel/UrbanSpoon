@@ -18,6 +18,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root Welcome Route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Welcome to the Urban Spoon API Server!',
+    status: 'online',
+    timestamp: new Date(),
+    endpoints: {
+      health: '/api/health',
+      inquiries: '/api/inquiries',
+    },
+  });
+});
+
 // Health Check route
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'Urban Spoon API', timestamp: new Date() });
