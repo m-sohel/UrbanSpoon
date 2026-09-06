@@ -9,6 +9,11 @@ const reservationSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
     tableNumber: {
       type: Number,
       required: [true, 'Table number is required'],
@@ -62,9 +67,10 @@ const reservationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['confirmed', 'completed', 'cancelled'],
+      enum: ['confirmed', 'seated', 'completed', 'cancelled'],
       default: 'confirmed',
     },
+
   },
   {
     timestamps: true,

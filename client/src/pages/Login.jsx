@@ -13,7 +13,7 @@ const Login = () => {
 
   // Role prompt state: 'user' or 'admin'
   const [loginRole, setLoginRole] = useState(isFromAdmin ? 'admin' : 'user');
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(Boolean(location.state?.isRegister));
 
   // Form fields
   const [name, setName] = useState('');

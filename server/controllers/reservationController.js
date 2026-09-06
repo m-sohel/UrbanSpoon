@@ -30,12 +30,15 @@ const getAvailability = async (req, res, next) => {
       confirmedBookings = await Reservation.find({
         date,
         timeSlot,
-        status: 'confirmed',
+        status: { $in: ['confirmed', 'seated'] },
       });
     } catch (dbErr) {
       console.warn('[Reservation Controller] MongoDB read fallback:', dbErr.message);
       confirmedBookings = inMemoryReservations.filter(
-        (r) => r.date === date && r.timeSlot === timeSlot && r.status === 'confirmed'
+        (r) =>
+          r.date === date &&
+          r.timeSlot === timeSlot &&
+          (r.status === 'confirmed' || r.status === 'seated')
       );
     }
 
@@ -44,6 +47,7 @@ const getAvailability = async (req, res, next) => {
     confirmedBookings.forEach((b) => {
       bookedMap.set(b.tableNumber, {
         bookingRef: b.bookingRef,
+        status: b.status,
         guestInitials: b.guestName
           ? b.guestName
               .split(' ')
@@ -59,15 +63,17 @@ const getAvailability = async (req, res, next) => {
     const tablesWithStatus = TABLES.map((t) => {
       const isBooked = bookedMap.has(t.number);
       const bookingInfo = isBooked ? bookedMap.get(t.number) : null;
+      const currentStatus = isBooked ? bookingInfo.status : 'available';
 
       return {
         ...t,
         isAvailable: !isBooked,
         isReserved: isBooked,
-        status: isBooked ? 'reserved' : 'available',
+        status: currentStatus, // 'available' | 'confirmed' | 'seated'
         activeBooking: bookingInfo,
       };
     });
+
 
     const totalTables = TABLES.length;
     const reservedCount = bookedMap.size;
@@ -163,7 +169,7 @@ const createReservation = async (req, res, next) => {
         date,
         timeSlot,
         tableNumber: Number(tableNumber),
-        status: 'confirmed',
+        status: { $in: ['confirmed', 'seated'] },
       });
     } catch (dbErr) {
       console.warn('[Reservation Controller] MongoDB check fallback:', dbErr.message);
@@ -172,9 +178,10 @@ const createReservation = async (req, res, next) => {
           r.date === date &&
           r.timeSlot === timeSlot &&
           r.tableNumber === Number(tableNumber) &&
-          r.status === 'confirmed'
+          (r.status === 'confirmed' || r.status === 'seated')
       );
     }
+
 
     if (existingBooking) {
       return res.status(409).json({
@@ -199,6 +206,7 @@ const createReservation = async (req, res, next) => {
     // 4. Save confirmed reservation
     const reservationData = {
       bookingRef,
+      user: req.user?._id,
       tableNumber: Number(tableNumber),
       tableName: `${tableDef.name} (${tableDef.zone})`,
       zone: tableDef.zone,
@@ -335,6 +343,159 @@ const cancelReservation = async (req, res, next) => {
 };
 
 /**
+ * @desc    Update reservation operational status (seated, completed, cancelled)
+ * @route   PATCH /api/reservations/:id/status
+ * @access  Private (Admin Only)
+ */
+const updateReservationStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowed = ['confirmed', 'seated', 'completed', 'cancelled'];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Allowed values: ${allowed.join(', ')}`,
+      });
+    }
+
+    let reservation;
+    try {
+      reservation = await Reservation.findById(id);
+      if (reservation) {
+        reservation.status = status;
+        await reservation.save();
+      }
+    } catch (dbErr) {
+      console.warn('[Reservation Controller] MongoDB status update fallback:', dbErr.message);
+      reservation = inMemoryReservations.find((r) => r._id === id || r.bookingRef === id);
+      if (reservation) {
+        reservation.status = status;
+      }
+    }
+
+    if (!reservation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reservation not found.',
+      });
+    }
+
+    const messages = {
+      seated: `Guests for Table ${reservation.tableNumber} marked as SEATED. Table is currently dining.`,
+      completed: `Table ${reservation.tableNumber} marked as COMPLETED & billed. Table is now cleaned and available.`,
+      cancelled: `Reservation for Table ${reservation.tableNumber} cancelled. Table is now available.`,
+      confirmed: `Reservation for Table ${reservation.tableNumber} set back to CONFIRMED.`,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: messages[status] || `Reservation status updated to ${status}`,
+      reservation,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Quick Walk-in Seating (Host stand seats walk-in directly at door)
+ * @route   POST /api/reservations/walkin
+ * @access  Private (Admin Only)
+ */
+const createWalkinReservation = async (req, res, next) => {
+  try {
+    const { tableNumber, date, timeSlot, guests, specialRequests } = req.body;
+
+    if (!tableNumber || isNaN(tableNumber) || tableNumber < 1 || tableNumber > 30) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid table number between 1 and 30 is required.',
+      });
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const bookingDate = date || todayStr;
+    const slot = timeSlot || TIME_SLOTS[3].label;
+
+    const tableDef = TABLES.find((t) => t.number === Number(tableNumber));
+    if (!tableDef) {
+      return res.status(404).json({
+        success: false,
+        message: `Table ${tableNumber} not found.`,
+      });
+    }
+
+    // Check table is currently open
+    let existingBooking = null;
+    try {
+      existingBooking = await Reservation.findOne({
+        date: bookingDate,
+        timeSlot: slot,
+        tableNumber: Number(tableNumber),
+        status: { $in: ['confirmed', 'seated'] },
+      });
+    } catch (dbErr) {
+      existingBooking = inMemoryReservations.find(
+        (r) =>
+          r.date === bookingDate &&
+          r.timeSlot === slot &&
+          r.tableNumber === Number(tableNumber) &&
+          (r.status === 'confirmed' || r.status === 'seated')
+      );
+    }
+
+    if (existingBooking) {
+      return res.status(409).json({
+        success: false,
+        message: `Table ${tableNumber} is already occupied or reserved for this slot.`,
+      });
+    }
+
+    const bookingRef = generateBookingRef();
+    const guestsNum = Number(guests) || 2;
+
+    const walkinRecord = {
+      bookingRef,
+      tableNumber: Number(tableNumber),
+      tableName: `${tableDef.name} (${tableDef.zone})`,
+      zone: tableDef.zone,
+      date: bookingDate,
+      timeSlot: slot,
+      guests: guestsNum,
+      guestName: 'Walk-in Guest',
+      guestPhone: 'Walk-in (Door)',
+      guestEmail: 'walkin@urbanspoon.com',
+      specialRequests: specialRequests || 'Walk-in seated directly at host stand',
+      status: 'seated', // Directly marked as seated
+    };
+
+    let savedWalkin;
+    try {
+      savedWalkin = await Reservation.create(walkinRecord);
+    } catch (dbErr) {
+      savedWalkin = {
+        _id: `walkin-${Date.now()}`,
+        ...walkinRecord,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      inMemoryReservations.unshift(savedWalkin);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `Table ${tableNumber} seated for walk-in party (${guestsNum} Guests)!`,
+      reservation: savedWalkin,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/**
  * Seed sample reservations if collection is empty
  */
 const seedDemoReservations = async () => {
@@ -418,5 +579,8 @@ module.exports = {
   createReservation,
   getAllReservations,
   cancelReservation,
+  updateReservationStatus,
+  createWalkinReservation,
   seedDemoReservations,
 };
+

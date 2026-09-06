@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import API from '../api/api';
 import './ReservationModal.css';
 
 const ReservationModal = ({ table, onClose, onBookingConfirmed }) => {
-  const [guestName, setGuestName] = useState('');
-  const [guestPhone, setGuestPhone] = useState('');
-  const [guestEmail, setGuestEmail] = useState('');
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [guestName, setGuestName] = useState(user?.name || '');
+  const [guestPhone, setGuestPhone] = useState(user?.phone || '');
+  const [guestEmail, setGuestEmail] = useState(user?.email || '');
   const [guests, setGuests] = useState(table.minGuests || 2);
   const [occasion, setOccasion] = useState('Casual Fine Dining');
   const [specialRequests, setSpecialRequests] = useState('');
@@ -13,17 +19,32 @@ const ReservationModal = ({ table, onClose, onBookingConfirmed }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Auto-fill user details if logged in
+  useEffect(() => {
+    if (user) {
+      if (!guestName && user.name) setGuestName(user.name);
+      if (!guestEmail && user.email) setGuestEmail(user.email);
+    }
+  }, [user]);
+
   if (!table) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!isAuthenticated) {
+      setError('Please sign in to make a table reservation.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const combinedNotes = occasion && occasion !== 'Casual Fine Dining'
-        ? `[Occasion: ${occasion}] ${specialRequests}`.trim()
-        : specialRequests.trim();
+      const combinedNotes =
+        occasion && occasion !== 'Casual Fine Dining'
+          ? `[Occasion: ${occasion}] ${specialRequests}`.trim()
+          : specialRequests.trim();
 
       const payload = {
         tableNumber: table.number,
@@ -44,10 +65,14 @@ const ReservationModal = ({ table, onClose, onBookingConfirmed }) => {
       }
     } catch (err) {
       console.error('Reservation booking failed:', err);
-      const msg =
-        err.response?.data?.message ||
-        'This table may have just been reserved or the server is momentarily unreachable.';
-      setError(msg);
+      if (err.response?.status === 401) {
+        setError('Authentication required: Please sign in to book your table.');
+      } else {
+        const msg =
+          err.response?.data?.message ||
+          'This table may have just been reserved or the server is momentarily unreachable.';
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -81,7 +106,7 @@ const ReservationModal = ({ table, onClose, onBookingConfirmed }) => {
             </span>
           </div>
           <div className="summary-item">
-            <span className="summary-label">Date & Dining Slot</span>
+            <span className="summary-label">Date &amp; Dining Slot</span>
             <span className="summary-value">
               📅 {table.date} • ⏰ {table.timeSlot}
             </span>
@@ -95,6 +120,50 @@ const ReservationModal = ({ table, onClose, onBookingConfirmed }) => {
             <span className="summary-value">Up to {table.capacity} Guests</span>
           </div>
         </div>
+
+        {/* Authentication Notice Banner if user is not logged in */}
+        {!isAuthenticated ? (
+          <div className="modal-auth-prompt card" id="modal-auth-prompt">
+            <div className="modal-auth-header">
+              <span className="modal-auth-icon">🔒</span>
+              <div>
+                <h4 className="modal-auth-title">Member Sign In Required</h4>
+                <p className="modal-auth-desc text-muted">
+                  To guarantee your table reservation and generate your confirmed digital boarding pass, please sign in or register an account.
+                </p>
+              </div>
+            </div>
+            <div className="modal-auth-actions">
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => navigate('/login', { state: { from: location } })}
+                id="btn-modal-signin"
+              >
+                🔑 Sign In to Book
+              </button>
+              <button
+                type="button"
+                className="btn btn--outline btn--sm"
+                onClick={() => navigate('/login', { state: { from: location, isRegister: true } })}
+                id="btn-modal-register"
+              >
+                ✨ Create Free Account
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="modal-user-ribbon" id="modal-user-ribbon">
+            <span className="user-ribbon-icon">👤</span>
+            <div className="user-ribbon-info">
+              <span className="user-ribbon-name">
+                Booking as <strong>{user?.name}</strong>
+              </span>
+              <span className="user-ribbon-email text-muted">{user?.email}</span>
+            </div>
+            <span className="badge badge--user-verified">VERIFIED MEMBER</span>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (
@@ -215,18 +284,30 @@ const ReservationModal = ({ table, onClose, onBookingConfirmed }) => {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btn--primary btn-confirm-submit"
-              disabled={loading}
-              id="btn-confirm-submit"
-            >
-              {loading ? (
-                <span className="spinner" style={{ width: '20px', height: '20px' }}></span>
-              ) : (
-                '🎟️ Confirm Guaranteed Table'
-              )}
-            </button>
+
+            {!isAuthenticated ? (
+              <button
+                type="button"
+                className="btn btn--primary btn-confirm-submit"
+                onClick={() => navigate('/login', { state: { from: location } })}
+                id="btn-confirm-submit"
+              >
+                🔑 Sign In to Complete Reservation
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="btn btn--primary btn-confirm-submit"
+                disabled={loading}
+                id="btn-confirm-submit"
+              >
+                {loading ? (
+                  <span className="spinner" style={{ width: '20px', height: '20px' }}></span>
+                ) : (
+                  '🎟️ Confirm Guaranteed Table'
+                )}
+              </button>
+            )}
           </div>
         </form>
       </div>

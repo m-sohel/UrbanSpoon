@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import API from '../api/api';
 import './TableMap.css';
 
 const TableMap = ({ onSelectTable, selectedTable }) => {
+  const { isAuthenticated } = useAuth();
   const todayStr = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedSlot, setSelectedSlot] = useState('08:00 PM - 10:00 PM');
@@ -74,6 +77,16 @@ const TableMap = ({ onSelectTable, selectedTable }) => {
             </span>
           </div>
         </div>
+
+        {!isAuthenticated && (
+          <div className="floor-auth-notice" id="floor-auth-notice">
+            <span>
+              🔒 <strong>Member Notice:</strong> Real-time floor availability is visible to all guests. To lock in and confirm a table booking, please{' '}
+              <Link to="/login" className="floor-auth-link">Sign In</Link> or{' '}
+              <Link to="/login" state={{ isRegister: true }} className="floor-auth-link">Register</Link>.
+            </span>
+          </div>
+        )}
 
         <div className="floor-controls-grid">
           {/* Date Picker */}

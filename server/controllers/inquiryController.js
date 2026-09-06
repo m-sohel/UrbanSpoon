@@ -79,7 +79,60 @@ const getInquiries = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Update inquiry status (new, contacted, quoted, closed) & admin notes
+ * @route   PATCH /api/inquiries/:id/status
+ * @access  Private (Admin Only)
+ */
+const updateInquiryStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, adminNotes } = req.body;
+
+    const allowed = ['new', 'contacted', 'quoted', 'closed'];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${allowed.join(', ')}`,
+      });
+    }
+
+    let inquiry;
+    try {
+      inquiry = await Inquiry.findById(id);
+      if (inquiry) {
+        if (status) inquiry.status = status;
+        if (adminNotes !== undefined) inquiry.adminNotes = adminNotes;
+        await inquiry.save();
+      }
+    } catch (dbErr) {
+      inquiry = inMemoryInquiries.find((i) => i._id === id);
+      if (inquiry) {
+        if (status) inquiry.status = status;
+        if (adminNotes !== undefined) inquiry.adminNotes = adminNotes;
+      }
+    }
+
+    if (!inquiry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inquiry not found.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Inquiry status updated to ${inquiry.status}`,
+      inquiry,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createInquiry,
   getInquiries,
+  updateInquiryStatus,
 };
+

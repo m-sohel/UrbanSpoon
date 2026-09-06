@@ -38,10 +38,20 @@ const inquirySchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    status: {
+      type: String,
+      enum: ['new', 'contacted', 'quoted', 'closed'],
+      default: 'new',
+    },
+    adminNotes: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,
   }
+
 );
 
 module.exports = mongoose.model('Inquiry', inquirySchema);
