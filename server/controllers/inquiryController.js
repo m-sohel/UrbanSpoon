@@ -11,7 +11,7 @@ let inMemoryInquiries = [];
  */
 const createInquiry = async (req, res, next) => {
   try {
-    const { name, phone, date, guests } = req.body;
+    const { name, email, phone, inquiryType, message, date, guests } = req.body;
 
     // Backend validation
     if (!name || !name.trim()) {
@@ -20,31 +20,27 @@ const createInquiry = async (req, res, next) => {
     if (!phone || !phone.trim()) {
       return res.status(400).json({ success: false, message: 'Phone number is required' });
     }
-    if (!date) {
-      return res.status(400).json({ success: false, message: 'Reservation date is required' });
-    }
-    if (!guests || isNaN(guests) || Number(guests) < 1) {
-      return res.status(400).json({ success: false, message: 'Valid number of guests (at least 1) is required' });
-    }
+
+    const inquiryData = {
+      name: name.trim(),
+      email: (email || '').trim().toLowerCase(),
+      phone: phone.trim(),
+      inquiryType: inquiryType || 'General Feedback & Questions',
+      message: (message || '').trim(),
+      date: date ? new Date(date) : new Date(),
+      guests: guests && !isNaN(guests) ? Number(guests) : 1,
+    };
 
     let savedInquiry;
     try {
       // Attempt to save to MongoDB
-      savedInquiry = await Inquiry.create({
-        name: name.trim(),
-        phone: phone.trim(),
-        date: new Date(date),
-        guests: Number(guests),
-      });
+      savedInquiry = await Inquiry.create(inquiryData);
     } catch (dbErr) {
       console.warn('[Inquiry Controller] MongoDB write fallback:', dbErr.message);
       // In-memory fallback if database server is disconnected
       savedInquiry = {
         _id: `mock-${Date.now()}`,
-        name: name.trim(),
-        phone: phone.trim(),
-        date: new Date(date),
-        guests: Number(guests),
+        ...inquiryData,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -53,13 +49,14 @@ const createInquiry = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Table inquiry submitted successfully',
+      message: 'Inquiry received! Our events team will contact you shortly.',
       data: savedInquiry,
     });
   } catch (error) {
     next(error);
   }
 };
+
 
 /**
  * @desc    Get all table inquiries (for Admin portal)

@@ -1,15 +1,6 @@
 import './ConfirmationSummary.css';
 
 const ConfirmationSummary = ({ data, onReset }) => {
-  const formattedDate = data.date
-    ? new Date(data.date).toLocaleDateString('en-IN', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : data.date;
-
   return (
     <div className="confirmation animate-scale-in" id="confirmation-summary">
       <div className="confirmation__icon-wrapper">
@@ -21,9 +12,9 @@ const ConfirmationSummary = ({ data, onReset }) => {
         </div>
       </div>
 
-      <h2 className="confirmation__title">Inquiry Submitted Successfully!</h2>
+      <h2 className="confirmation__title">Inquiry Sent Successfully!</h2>
       <p className="confirmation__subtitle">
-        Thank you, <strong>{data.name}</strong>. Your table inquiry has been received.
+        Thank you, <strong>{data.name}</strong>. Our private events and hospitality team has received your message.
       </p>
 
       <div className="confirmation__details">
@@ -35,22 +26,26 @@ const ConfirmationSummary = ({ data, onReset }) => {
           <span className="confirmation__label">Phone</span>
           <span className="confirmation__value">{data.phone}</span>
         </div>
-        <div className="confirmation__detail">
-          <span className="confirmation__label">Date</span>
-          <span className="confirmation__value">{formattedDate}</span>
-        </div>
-        <div className="confirmation__detail">
-          <span className="confirmation__label">Guests</span>
-          <span className="confirmation__value">{data.guests}</span>
-        </div>
+        {data.inquiryType && (
+          <div className="confirmation__detail">
+            <span className="confirmation__label">Inquiry Type</span>
+            <span className="confirmation__value">{data.inquiryType}</span>
+          </div>
+        )}
+        {data.email && (
+          <div className="confirmation__detail">
+            <span className="confirmation__label">Email</span>
+            <span className="confirmation__value">{data.email}</span>
+          </div>
+        )}
       </div>
 
       <p className="confirmation__note">
-        We&rsquo;ll get back to you shortly to confirm your reservation.
+        Our team will get in touch with you within 24 hours. For urgent dining table reservations, please use our <strong>Live 30-Table Floor Map</strong> above!
       </p>
 
       <button className="btn btn--outline btn--lg" onClick={onReset} id="confirmation-reset">
-        Make Another Inquiry
+        Send Another Message
       </button>
     </div>
   );

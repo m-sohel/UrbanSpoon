@@ -93,6 +93,46 @@
   margin-left: var(--space-md);
 }
 
+/* Auth Controls */
+.navbar__link--admin {
+  color: var(--color-primary-400);
+  font-weight: 600;
+}
+
+.navbar__link--login {
+  color: var(--color-neutral-300);
+}
+
+.navbar__auth-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.navbar__user-tag {
+  font-size: var(--text-xs);
+  color: var(--color-neutral-300);
+  background: var(--color-neutral-800);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.navbar__logout-btn {
+  font-size: var(--text-xs);
+  padding: 4px 10px;
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  background: transparent;
+}
+
+.navbar__logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fff;
+}
+
+
 /* Hamburger */
 .navbar__toggle {
   display: none;

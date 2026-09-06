@@ -1,5 +1,68 @@
 .admin-section {
-  padding-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+}
+
+.admin-user-ribbon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  background: rgba(200, 150, 62, 0.06);
+  border: 1px solid rgba(200, 150, 62, 0.25);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-xl);
+  backdrop-filter: blur(8px);
+}
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.admin-avatar {
+  font-size: 1.8rem;
+  background: var(--color-neutral-800);
+  border: 1px solid var(--color-primary-500);
+  border-radius: var(--radius-full);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+
+.admin-user-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-white);
+  font-size: var(--text-base);
+}
+
+.admin-user-email {
+  font-size: var(--text-xs);
+}
+
+.badge--admin {
+  background: rgba(200, 150, 62, 0.2);
+  color: var(--color-primary-300);
+  border-color: var(--color-primary-500);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.btn-logout {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  transition: all var(--transition-fast);
+}
+
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ffffff;
 }
 
 .admin-actions-bar {
@@ -74,3 +137,39 @@
     justify-content: space-between;
   }
 }
+
+/* Admin Tabs Navigation */
+.admin-tabs-nav {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.admin-tab-btn {
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  background: transparent;
+  color: var(--color-neutral-400);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  border-bottom: 2px solid transparent;
+}
+
+.admin-tab-btn:hover {
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-tab-btn--active {
+  color: var(--color-primary-400);
+  background: rgba(200, 150, 62, 0.08);
+  border-bottom: 2px solid var(--color-primary-400);
+}
+

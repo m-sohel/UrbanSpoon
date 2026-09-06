@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,13 +54,53 @@ const Navbar = () => {
           <NavLink to="/contact" className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`} id="nav-contact">
             Contact
           </NavLink>
-          <NavLink to="/admin" className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`} id="nav-admin">
-            Admin
-          </NavLink>
+
+          {/* Admin link - Only visible when an administrator is actively authenticated */}
+          {isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `navbar__link navbar__link--admin ${isActive ? 'navbar__link--active' : ''}`
+              }
+              id="nav-admin"
+            >
+              🛡️ Admin Dashboard
+            </NavLink>
+          )}
+
+
+          {/* Auth Action */}
+          {isAuthenticated ? (
+            <div className="navbar__auth-group">
+              <span className="navbar__user-tag" title={`Signed in as ${user?.name}`}>
+                👤 {user?.name?.split(' ')[0] || 'User'}
+              </span>
+              <button
+                type="button"
+                className="btn btn--outline btn--sm navbar__logout-btn"
+                onClick={handleLogout}
+                id="nav-logout-btn"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                `navbar__link navbar__link--login ${isActive ? 'navbar__link--active' : ''}`
+              }
+              id="nav-login"
+            >
+              Sign In
+            </NavLink>
+          )}
+
           <NavLink to="/contact" className="btn btn--primary btn--sm navbar__cta hide-mobile" id="nav-reserve">
             Reserve a Table
           </NavLink>
         </div>
+
 
         <button
           className={`navbar__toggle ${isOpen ? 'navbar__toggle--open' : ''}`}

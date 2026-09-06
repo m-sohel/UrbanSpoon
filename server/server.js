@@ -3,13 +3,21 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const inquiryRoutes = require('./routes/inquiryRoutes');
+const authRoutes = require('./routes/authRoutes');
+const reservationRoutes = require('./routes/reservationRoutes');
+const { seedDefaultAdmin } = require('./controllers/authController');
+const { seedDemoReservations } = require('./controllers/reservationController');
 const errorHandler = require('./middleware/errorHandler');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB and seed default data
+connectDB().then(() => {
+  seedDefaultAdmin();
+  seedDemoReservations();
+});
+
 
 const app = express();
 
@@ -26,7 +34,12 @@ app.get('/', (req, res) => {
     timestamp: new Date(),
     endpoints: {
       health: '/api/health',
-      inquiries: '/api/inquiries',
+      inquiries: '/api/inquiries (POST: Public, GET: Admin JWT Required)',
+      auth: {
+        login: 'POST /api/auth/login',
+        register: 'POST /api/auth/register',
+        me: 'GET /api/auth/me',
+      },
     },
   });
 });
@@ -37,7 +50,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/reservations', reservationRoutes);
+
+
 
 // Error handling middleware
 app.use(errorHandler);

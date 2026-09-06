@@ -8,21 +8,35 @@ const inquirySchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, 'Name cannot exceed 100 characters'],
     },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: '',
+    },
     phone: {
       type: String,
       required: [true, 'Phone number is required'],
       trim: true,
-      maxlength: [20, 'Phone cannot exceed 20 characters'],
+      maxlength: [25, 'Phone cannot exceed 25 characters'],
+    },
+    inquiryType: {
+      type: String,
+      enum: ['Private Banquet & Buyout', 'Event Catering', 'Corporate Dinner', 'General Feedback & Questions'],
+      default: 'General Feedback & Questions',
+    },
+    message: {
+      type: String,
+      trim: true,
+      default: '',
     },
     date: {
       type: Date,
-      required: [true, 'Preferred reservation date is required'],
+      default: Date.now,
     },
     guests: {
       type: Number,
-      required: [true, 'Number of guests is required'],
-      min: [1, 'Number of guests must be at least 1'],
-      max: [20, 'Maximum 20 guests per reservation'],
+      default: 1,
     },
   },
   {

@@ -7,8 +7,9 @@ const InquiryForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    date: '',
-    guests: '',
+    email: '',
+    inquiryType: 'Private Banquet & Buyout',
+    message: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -17,20 +18,17 @@ const InquiryForm = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.name.trim()) newErrors.name = 'Full name is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (!/^\+?[\d\s-]{7,15}$/.test(formData.phone.trim())) newErrors.phone = 'Enter a valid phone number';
-    if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.guests) newErrors.guests = 'Number of guests is required';
-    else if (isNaN(formData.guests) || Number(formData.guests) < 1) newErrors.guests = 'Enter a valid number';
-    else if (Number(formData.guests) > 20) newErrors.guests = 'Maximum 20 guests per table';
+    else if (!/^\+?[\d\s-]{7,15}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Enter a valid phone number';
+    }
     return newErrors;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error on change
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -48,10 +46,7 @@ const InquiryForm = () => {
 
     setLoading(true);
     try {
-      await API.post('/api/inquiries', {
-        ...formData,
-        guests: Number(formData.guests),
-      });
+      await API.post('/api/inquiries', formData);
       setSubmitted(true);
     } catch (err) {
       setServerError(
@@ -63,7 +58,13 @@ const InquiryForm = () => {
   };
 
   const handleReset = () => {
-    setFormData({ name: '', phone: '', date: '', guests: '' });
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      inquiryType: 'Private Banquet & Buyout',
+      message: '',
+    });
     setErrors({});
     setSubmitted(false);
     setServerError('');
@@ -73,90 +74,124 @@ const InquiryForm = () => {
     return <ConfirmationSummary data={formData} onReset={handleReset} />;
   }
 
-  // Get tomorrow's date as min date for reservation
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
-
   return (
     <div className="inquiry-form-wrapper" id="inquiry-form-wrapper">
       <div className="inquiry-form__header">
-        <span className="section__label">Reservations</span>
-        <h2 className="section__title">Reserve Your Table</h2>
+        <span className="section__label">Special Occasions &amp; Contact</span>
+        <h2 className="section__title">Private Events &amp; Inquiries</h2>
         <p className="section__subtitle">
-          Complete the form below and we&rsquo;ll confirm your table shortly.
+          Planning a private banquet, corporate event, wedding reception, or have general questions? Send our hospitality team a direct message.
         </p>
+      </div>
+
+      {/* Helpful reminder pointing to the visual table floor plan */}
+      <div className="inquiry-reservation-tip" style={{
+        background: 'rgba(200, 150, 62, 0.08)',
+        border: '1px dashed var(--color-primary-500)',
+        borderRadius: 'var(--radius-md)',
+        padding: '10px 14px',
+        marginBottom: 'var(--space-lg)',
+        fontSize: 'var(--text-xs)',
+        color: 'var(--color-neutral-300)',
+        lineHeight: 1.5,
+      }}>
+        💡 <strong>Looking for regular dining tables?</strong> Please use our{' '}
+        <a href="#visual-floor-plan" style={{ color: 'var(--color-primary-400)', fontWeight: 600, textDecoration: 'underline' }}>
+          Interactive 30-Table Floor Map above
+        </a>{' '}
+        for instant guaranteed confirmation and a digital dining pass!
       </div>
 
       <form className="inquiry-form" onSubmit={handleSubmit} noValidate id="inquiry-form">
         <div className="form-group">
-          <label className="form-label" htmlFor="inquiry-name">Full Name</label>
+          <label className="form-label" htmlFor="inquiry-name">
+            Full Name *
+          </label>
           <input
             className={`form-input ${errors.name ? 'form-input--error' : ''}`}
             type="text"
             id="inquiry-name"
             name="name"
-            placeholder="e.g. John Doe"
+            placeholder="e.g. Vikram Singhania"
             value={formData.name}
             onChange={handleChange}
+            required
           />
           {errors.name && <span className="form-error">{errors.name}</span>}
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="inquiry-phone">Phone Number</label>
-          <input
-            className={`form-input ${errors.phone ? 'form-input--error' : ''}`}
-            type="tel"
-            id="inquiry-phone"
-            name="phone"
-            placeholder="e.g. +91 98765 43210"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
-        </div>
-
         <div className="inquiry-form__row">
           <div className="form-group">
-            <label className="form-label" htmlFor="inquiry-date">Preferred Date</label>
+            <label className="form-label" htmlFor="inquiry-phone">
+              Phone Number *
+            </label>
             <input
-              className={`form-input ${errors.date ? 'form-input--error' : ''}`}
-              type="date"
-              id="inquiry-date"
-              name="date"
-              min={minDate}
-              value={formData.date}
+              className={`form-input ${errors.phone ? 'form-input--error' : ''}`}
+              type="tel"
+              id="inquiry-phone"
+              name="phone"
+              placeholder="+91 98765 43210"
+              value={formData.phone}
               onChange={handleChange}
+              required
             />
-            {errors.date && <span className="form-error">{errors.date}</span>}
+            {errors.phone && <span className="form-error">{errors.phone}</span>}
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="inquiry-guests">Number of Guests</label>
+            <label className="form-label" htmlFor="inquiry-email">
+              Email Address
+            </label>
             <input
-              className={`form-input ${errors.guests ? 'form-input--error' : ''}`}
-              type="number"
-              id="inquiry-guests"
-              name="guests"
-              placeholder="e.g. 4"
-              min="1"
-              max="20"
-              value={formData.guests}
+              className="form-input"
+              type="email"
+              id="inquiry-email"
+              name="email"
+              placeholder="vikram@example.com"
+              value={formData.email}
               onChange={handleChange}
             />
-            {errors.guests && <span className="form-error">{errors.guests}</span>}
           </div>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="inquiry-type">
+            Inquiry Purpose
+          </label>
+          <select
+            className="form-input"
+            id="inquiry-type"
+            name="inquiryType"
+            value={formData.inquiryType}
+            onChange={handleChange}
+          >
+            <option value="Private Banquet &amp; Buyout">Private Banquet &amp; Restaurant Buyout</option>
+            <option value="Event Catering">Outdoor &amp; Event Catering</option>
+            <option value="Corporate Dinner">Corporate Dinner &amp; VIP Meeting</option>
+            <option value="General Feedback &amp; Questions">General Questions &amp; Feedback</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="inquiry-message">
+            Message &amp; Event Details
+          </label>
+          <textarea
+            className="form-input"
+            id="inquiry-message"
+            name="message"
+            rows={4}
+            placeholder="Tell us about your event, expected guests, preferred dates, or special dietary requirements..."
+            value={formData.message}
+            onChange={handleChange}
+            style={{ resize: 'vertical' }}
+          ></textarea>
         </div>
 
         {serverError && (
           <div className="inquiry-form__server-error" id="server-error">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="15" y1="9" x2="9" y2="15"/>
-              <line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
-            {serverError}
+            <span>⚠️</span>
+            <span>{serverError}</span>
           </div>
         )}
 
@@ -169,10 +204,10 @@ const InquiryForm = () => {
           {loading ? (
             <>
               <span className="spinner"></span>
-              Submitting...
+              Sending Inquiry...
             </>
           ) : (
-            'Submit Inquiry'
+            '📨 Send Event & Hospitality Inquiry'
           )}
         </button>
       </form>
